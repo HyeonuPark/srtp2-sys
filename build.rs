@@ -1,6 +1,6 @@
 
 use std::env;
-use std::process::{Command, exit};
+use std::process::Command;
 
 fn main() {
     let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
@@ -9,8 +9,7 @@ fn main() {
     let profile = &env::var("PROFILE").unwrap();
 
     if target.contains("msvc") {
-        println!("cargo:warning=libsrtp doesn't support windows toolchain");
-        exit(1)
+        panic!("libsrtp doesn't support windows toolchain")
     }
 
     bindgen::Builder::default()
@@ -30,15 +29,17 @@ fn main() {
         configure.args(&["--enable-debug-logging", "--enable-log-stdout"]);
     }
 
-    configure
+    let out = configure
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `./configure` on libsrtp");
+    assert!(out.status.success(), "Failed to execute `./configure` on libsrtp");
 
-    make_cmd::make()
+    let out = make_cmd::make()
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `make` on libsrtp");
+    assert!(out.status.success(), "Failed to execute `make` on libsrtp");
 
     println!("cargo:rustc-link-lib=static=srtp2");
     println!("cargo:rustc-link-search={}", out_dir);

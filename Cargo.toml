@@ -6,6 +6,13 @@ edition = "2018"
 links = "srtp2"
 build = "build.rs"
 
+description = "Binding for libsrtp"
+documentation = "https://docs.rs/srtp2-sys/2.2.0/srtp2-sys"
+repository = "https://github.com/HyeonuPark/srtp2-sys"
+keywords = ["srtp"]
+categories = ["multimedia", "network-programming"]
+license = "BSD-3-Clause"
+
 [build-dependencies]
 bindgen = "0.49"
 make-cmd = "0.1.0"
