@@ -6,7 +6,6 @@ fn main() {
     let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
     let out_dir = &env::var("OUT_DIR").unwrap();
     let target = &env::var("TARGET").unwrap();
-    let profile = &env::var("PROFILE").unwrap();
 
     if target.contains("msvc") {
         panic!("libsrtp doesn't support windows toolchain")
@@ -25,8 +24,11 @@ fn main() {
 
     let mut configure = Command::new(format!("{}/libsrtp/configure", crate_dir));
 
-    if profile == "debug" {
-        configure.args(&["--enable-debug-logging", "--enable-log-stdout"]);
+    if cfg!(feature = "enable-debug-logging") {
+        configure.arg("--enable-debug-logging");
+    }
+    if cfg!(feature = "enable-log-stdout") {
+        configure.arg("--enable-log-stdout");
     }
 
     let out = configure
