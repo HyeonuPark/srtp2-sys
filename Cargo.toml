@@ -1,20 +1,20 @@
 [package]
 name = "srtp2-sys"
-version = "2.20.2"
+version = "2.30.0"
 authors = ["Hyeonu Park <nemo1275@gmail.com>"]
 edition = "2018"
 links = "srtp2"
 build = "build.rs"
 
 description = "Binding for libsrtp"
-documentation = "https://docs.rs/srtp2-sys/2.2.0/srtp2_sys"
+documentation = "https://docs.rs/srtp2-sys/2.30.0/srtp2_sys"
 repository = "https://github.com/HyeonuPark/srtp2-sys"
 keywords = ["srtp"]
 categories = ["multimedia", "network-programming"]
 license = "BSD-3-Clause"
 
 [build-dependencies]
-bindgen = "0.52"
+bindgen = "0.53"
 make-cmd = "0.1.0"
 
 [features]
