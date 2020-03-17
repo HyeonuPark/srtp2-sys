@@ -24,6 +24,12 @@ fn main() {
 
     println!("cargo:rerun-if-changed=libsrtp");
 
+    // only generate the bindings, and emit the dynamic linking flag for Cargo
+    if cfg!(feature = "dynamic-linking") {
+        println!("cargo:rustc-link-lib=dylib=srtp2");
+        return;
+    }
+
     let mut configure = Command::new(format!("{}/libsrtp/configure", crate_dir));
 
     if cfg!(feature = "enable-debug-logging") {
