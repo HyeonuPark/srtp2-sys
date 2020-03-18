@@ -2,15 +2,24 @@
 use std::env;
 use std::process::Command;
 
-fn main() {
-    let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
-    let out_dir = &env::var("OUT_DIR").unwrap();
-    let target = &env::var("TARGET").unwrap();
+fn dynamic_linking(out_dir: &str) {
+    pkg_config::Config::new()
+        .atleast_version("2.0.0")
+        .probe("libsrtp2")
+        .expect("pkg-config could not find libsrtp2!");
 
-    if target.contains("msvc") {
-        panic!("libsrtp doesn't support windows toolchain")
-    }
+    bindgen::Builder::default()
+        .whitelist_function("srtp_.*")
+        .blacklist_function("srtp_crypto_policy_set_aes_cm_192_.*")
+        .blacklist_function("srtp_crypto_policy_set_aes_gcm_.*")
+        .header("wrapper.h")
+        .generate()
+        .expect("Failed to generate libsrtp binding")
+        .write_to_file(format!("{}/bindings.rs", out_dir))
+        .expect("Failed to write libsrtp binding");
+}
 
+fn static_linking(out_dir: &str) {
     bindgen::Builder::default()
         .whitelist_function("srtp_.*")
         .blacklist_function("srtp_crypto_policy_set_aes_cm_192_.*")
@@ -24,15 +33,7 @@ fn main() {
 
     println!("cargo:rerun-if-changed=libsrtp");
 
-    // only generate the bindings, and emit the dynamic linking flag for Cargo
-    if cfg!(feature = "dynamic-linking") {
-        pkg_config::Config::new()
-            .atleast_version("2.0.0")
-            .probe("libsrtp2")
-            .expect("pkg-config could not find libsrtp2!");
-        return;
-    }
-
+    let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
     let mut configure = Command::new(format!("{}/libsrtp/configure", crate_dir));
 
     if cfg!(feature = "enable-debug-logging") {
@@ -57,4 +58,20 @@ fn main() {
 
     println!("cargo:rustc-link-lib=static=srtp2");
     println!("cargo:rustc-link-search={}", out_dir);
+}
+
+fn main() {
+    let out_dir = &env::var("OUT_DIR").unwrap();
+    let target = &env::var("TARGET").unwrap();
+
+    if target.contains("msvc") {
+        panic!("libsrtp doesn't support windows toolchain")
+    }
+
+    if cfg!(feature = "dynamic-linking") {
+        dynamic_linking(&out_dir);
+    } else {
+        static_linking(&out_dir);
+    }
+
 }
