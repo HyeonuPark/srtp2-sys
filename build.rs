@@ -26,7 +26,10 @@ fn main() {
 
     // only generate the bindings, and emit the dynamic linking flag for Cargo
     if cfg!(feature = "dynamic-linking") {
-        println!("cargo:rustc-link-lib=dylib=srtp2");
+        pkg_config::Config::new()
+            .atleast_version("2.0.0")
+            .probe("libsrtp2")
+            .expect("pkg-config could not find libsrtp2!");
         return;
     }
 

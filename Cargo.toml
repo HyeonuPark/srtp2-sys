@@ -16,6 +16,7 @@ license = "BSD-3-Clause"
 [build-dependencies]
 bindgen = "0.53"
 make-cmd = "0.1.0"
+pkg-config = "0.3"
 
 [features]
 enable-debug-logging = []
