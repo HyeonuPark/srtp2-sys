@@ -1,11 +1,15 @@
 use std::env;
 use std::process::Command;
 
-fn dynamic_linking(out_dir: &str) {
+fn pkgconf() {
     pkg_config::Config::new()
         .atleast_version("2.0.0")
         .probe("libsrtp2")
         .expect("pkg-config could not find libsrtp2!");
+}
+
+fn dynamic_linking(out_dir: &str) {
+    pkgconf();
 
     bindgen::Builder::default()
         .whitelist_function("srtp_.*")
@@ -71,6 +75,7 @@ fn static_linking(out_dir: &str) {
 
 fn main() {
     if cfg!(feature = "pre-generated-bindings") {
+        pkgconf();
         return;
     }
 
