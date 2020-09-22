@@ -1,4 +1,3 @@
-
 use std::env;
 use std::process::Command;
 
@@ -24,7 +23,11 @@ fn static_linking(out_dir: &str) {
         .whitelist_function("srtp_.*")
         .blacklist_function("srtp_crypto_policy_set_aes_cm_192_.*")
         .blacklist_function("srtp_crypto_policy_set_aes_gcm_.*")
-        .clang_args(vec!["-I.", "-I./libsrtp/include", "-I./libsrtp/crypto/include"])
+        .clang_args(vec![
+            "-I.",
+            "-I./libsrtp/include",
+            "-I./libsrtp/crypto/include",
+        ])
         .header("libsrtp/include/srtp_priv.h")
         .generate()
         .expect("Failed to generate libsrtp binding")
@@ -48,13 +51,19 @@ fn static_linking(out_dir: &str) {
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `./configure` on libsrtp");
-    assert!(out.status.success(), "`./configure` executed unsuccessfully on libsrtp");
+    assert!(
+        out.status.success(),
+        "`./configure` executed unsuccessfully on libsrtp"
+    );
 
     let out = make_cmd::make()
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `make` on libsrtp");
-    assert!(out.status.success(), "`make` executed unsuccessfully on libsrtp");
+    assert!(
+        out.status.success(),
+        "`make` executed unsuccessfully on libsrtp"
+    );
 
     println!("cargo:rustc-link-lib=static=srtp2");
     println!("cargo:rustc-link-search={}", out_dir);
