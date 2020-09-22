@@ -61,6 +61,10 @@ fn static_linking(out_dir: &str) {
 }
 
 fn main() {
+    if cfg!(feature = "pre-generated-bindings") {
+        return;
+    }
+
     let out_dir = &env::var("OUT_DIR").unwrap();
     let target = &env::var("TARGET").unwrap();
 
@@ -73,5 +77,4 @@ fn main() {
     } else {
         static_linking(&out_dir);
     }
-
 }
