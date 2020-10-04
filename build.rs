@@ -1,51 +1,101 @@
-
 use std::env;
-use std::process::Command;
 
 fn main() {
-    let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
     let out_dir = &env::var("OUT_DIR").unwrap();
     let target = &env::var("TARGET").unwrap();
 
     if target.contains("msvc") {
-        panic!("libsrtp doesn't support windows toolchain")
+        panic!("libsrtp2 binding doesn't support windows toolchain")
     }
 
-    bindgen::Builder::default()
-        .whitelist_function("srtp_.*")
-        .blacklist_function("srtp_crypto_policy_set_aes_cm_192_.*")
-        .blacklist_function("srtp_crypto_policy_set_aes_gcm_.*")
-        .clang_args(vec!["-I.", "-I./libsrtp/include", "-I./libsrtp/crypto/include"])
-        .header("libsrtp/include/srtp_priv.h")
+    println!("cargo:rerun-if-changed=wrapper.h");
+
+    let mut bindgen_builder = bindgen::Builder::default()
+        .clang_args(&["-I./libsrtp/include"])
+        .header("wrapper.h")
+        .whitelist_function("(srtp|SRTP|srtcp|SRTCP)_.*")
+        .whitelist_type("(srtp|SRTP|srtcp|SRTCP)_.*")
+        .whitelist_var("(srtp|SRTP|srtcp|SRTCP)_.*");
+
+    if !cfg!(feature = "enable-openssl") {
+        bindgen_builder = bindgen_builder.blacklist_item(".*(192|gcm|GCM).*")
+    }
+
+    bindgen_builder
         .generate()
-        .expect("Failed to generate libsrtp binding")
+        .expect("Failed to generate libsrtp2 binding")
         .write_to_file(format!("{}/bindings.rs", out_dir))
-        .expect("Failed to write libsrtp binding");
+        .expect("Failed to write libsrtp2 binding");
 
-    println!("cargo:rerun-if-changed=libsrtp");
+    find_libsrtp2(out_dir);
+}
 
+#[cfg(not(feature = "build"))]
+fn find_libsrtp2(_out_dir: &str) {
+    pkg_config::Config::new()
+        .atleast_version("2.3.0")
+        .statik(true)
+        .probe("libsrtp2")
+        .expect("Failed to find libsrtp2 via pkg-config");
+}
+
+#[cfg(feature = "build")]
+fn find_libsrtp2(out_dir: &str) {
+    use std::process::Command;
+
+    let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
     let mut configure = Command::new(format!("{}/libsrtp/configure", crate_dir));
 
-    if cfg!(feature = "enable-debug-logging") {
+    if std::env::var_os("SRTP2_SYS_DEBUG_LOGGING").is_some() {
         configure.arg("--enable-debug-logging");
+
+        match std::env::var("SRTP2_SYS_DEBUG_LOG_FILE") {
+            Ok(path) => configure.arg(format!("--with-log-file={}", path)),
+            Err(_) => configure.arg("--enable-log-stdout"),
+        };
     }
 
-    if cfg!(feature = "enable-log-stdout") {
-        configure.arg("--enable-log-stdout");
+    #[cfg(feature = "enable-openssl")]
+    {
+        let openssl_include = env::var("DEP_OPENSSL_INCLUDE").unwrap();
+
+        configure
+            .arg("--enable-openssl")
+            .env("crypto_CFLAGS", format!("-I{}", openssl_include))
+            // Below are to fake the libsrtp build system
+            // so it believes we have proper openssl library.
+            // The library itself will be provided by the `openssl-sys` crate
+            // but at this point we can't know where it is.
+            .env("crypto_LIBS", " ")
+            .env("ac_cv_search_EVP_EncryptInit", " ")
+            .env("ac_cv_search_EVP_aes_128_ctr", " ")
+            .env("ac_cv_search_EVP_aes_128_gcm", " ");
     }
 
     let out = configure
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `./configure` on libsrtp");
-    assert!(out.status.success(), "`./configure` executed unsuccessfully on libsrtp");
+    assert!(
+        out.status.success(),
+        "`./configure` executed unsuccessfully on libsrtp\nSTDOUT: {}\nSTDERR: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr),
+    );
 
     let out = make_cmd::make()
+        .arg("libsrtp2.a")
         .current_dir(out_dir)
         .output()
         .expect("Failed to execute `make` on libsrtp");
-    assert!(out.status.success(), "`make` executed unsuccessfully on libsrtp");
+    assert!(
+        out.status.success(),
+        "`make` executed unsuccessfully on libsrtp\nSTDOUT: {}\nSTDERR: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr),
+    );
 
+    println!("cargo:rerun-if-changed=libsrtp");
     println!("cargo:rustc-link-lib=static=srtp2");
     println!("cargo:rustc-link-search={}", out_dir);
 }

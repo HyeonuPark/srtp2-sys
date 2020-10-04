@@ -1,9 +1,40 @@
 srtp2
 =========
 
-Rust binding for libsrtp
+![docs.rs](https://docs.rs/srtp2-sys/badge.svg)
+
+Rust binding for libsrtp 2.3.0
 
 Original repository: https://github.com/cisco/libsrtp
+
+# Features
+
+## `build`
+
+This is a default feature.
+
+Build the libsrtp from the source.
+If this feature is not active, this binding tries to find
+system wide installation using `pkg-config`.
+
+You can pass environment variable `SRTP2_SYS_DEBUG_LOGGING` and optionally
+`SRTP2_SYS_DEBUG_LOG_FILE` to activate debug logging of the libsrtp itself.
+Note that the cargo caches the build artifacts so you need to `cargo clean`
+before passing those variables.
+
+## `enable-openssl`
+
+Enable libsrtp2 features which requires the openssl library,
+including cryptography using gcm mode and 192 bits algorithms.
+
+System wide installations tend not to be compiled with this options.
+It's recommended to use this feature with the `build` feature.
+
+## `build-openssl`
+
+Activate the `enable-openssl` feature, and also build it from the source.
+
+In case if you don't want to rely on the system package manager.
 
 # License and Disclaimer
 
