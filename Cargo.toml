@@ -22,7 +22,6 @@ pkg-config = "0.3"
 make-cmd = { version = "0.1.0", optional = true }
 
 [features]
-default = ["build"]
 build = ["make-cmd"]
 enable-openssl = ["openssl-sys"]
 build-openssl = ["enable-openssl", "openssl-sys/vendored"]

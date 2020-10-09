@@ -11,10 +11,8 @@ Original repository: https://github.com/cisco/libsrtp
 
 ## `build`
 
-This is a default feature.
-
 Build the libsrtp from the source.
-If this feature is not active, this binding tries to find
+If this feature is not active, this crate tries to find
 system wide installation using `pkg-config`.
 
 You can pass environment variable `SRTP2_SYS_DEBUG_LOGGING` and optionally
@@ -32,7 +30,7 @@ It's recommended to use this feature with the `build` feature.
 
 ## `build-openssl`
 
-Activate the `enable-openssl` feature, and also build it from the source.
+Activate the `enable-openssl` feature, and also build the openssl from the source.
 
 In case if you don't want to rely on the system package manager.
 
