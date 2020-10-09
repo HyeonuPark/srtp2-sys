@@ -7,6 +7,18 @@ Rust binding for libsrtp 2.3.0
 
 Original repository: https://github.com/cisco/libsrtp
 
+# Windows
+
+Building from source is not supported on the MSVC target.
+But you can install the library using [`vcpkg`](https://github.com/microsoft/vcpkg)
+and link to it.
+
+```
+vcpkg install libsrtp --triplet x64-windows-static-md
+```
+
+Installed libsrtp version is not checked with vcpkg.
+
 # Features
 
 ## `build`

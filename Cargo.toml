@@ -21,6 +21,9 @@ bindgen = "0.55"
 pkg-config = "0.3"
 make-cmd = { version = "0.1.0", optional = true }
 
+[target.'cfg(target_env = "msvc")'.build-dependencies]
+vcpkg = "0.2"
+
 [features]
 build = ["make-cmd"]
 enable-openssl = ["openssl-sys"]

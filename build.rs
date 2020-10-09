@@ -2,11 +2,6 @@ use std::env;
 
 fn main() {
     let out_dir = &env::var("OUT_DIR").unwrap();
-    let target = &env::var("TARGET").unwrap();
-
-    if target.contains("msvc") {
-        panic!("libsrtp2 binding doesn't support windows toolchain")
-    }
 
     println!("cargo:rerun-if-changed=wrapper.h");
 
@@ -30,7 +25,18 @@ fn main() {
     find_libsrtp2(out_dir);
 }
 
-#[cfg(not(feature = "build"))]
+#[cfg(all(target_env = "msvc", feature = "build"))]
+fn find_libsrtp2(_out_dir: &str) {
+    compile_error!("building libsrtp2 from source is not supported on windows");
+}
+
+#[cfg(all(target_env = "msvc", not(feature = "build")))]
+fn find_libsrtp2(_out_dir: &str) {
+    vcpkg::find_package("libsrtp")
+        .expect("Failed to find libsrtp via vcpkg");
+}
+
+#[cfg(all(not(target_env = "msvc"), not(feature = "build")))]
 fn find_libsrtp2(_out_dir: &str) {
     pkg_config::Config::new()
         .atleast_version("2.3.0")
@@ -39,7 +45,7 @@ fn find_libsrtp2(_out_dir: &str) {
         .expect("Failed to find libsrtp2 via pkg-config");
 }
 
-#[cfg(feature = "build")]
+#[cfg(all(not(target_env = "msvc"), feature = "build"))]
 fn find_libsrtp2(out_dir: &str) {
     use std::process::Command;
 
