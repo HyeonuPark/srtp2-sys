@@ -50,7 +50,8 @@ fn find_libsrtp2(out_dir: &str) {
     use std::process::Command;
 
     let crate_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
-    let mut configure = Command::new(format!("{}/libsrtp/configure", crate_dir));
+    let mut configure = Command::new("/bin/sh");
+    configure.arg(format!("{}/libsrtp/configure", crate_dir));
 
     if std::env::var_os("SRTP2_SYS_DEBUG_LOGGING").is_some() {
         configure.arg("--enable-debug-logging");
