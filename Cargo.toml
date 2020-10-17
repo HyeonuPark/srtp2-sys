@@ -1,6 +1,6 @@
 [package]
 name = "srtp2-sys"
-version = "3.0.1"
+version = "3.0.2"
 authors = ["Hyeonu Park <nemo1275@gmail.com>"]
 edition = "2018"
 links = "srtp2"
@@ -9,8 +9,8 @@ build = "build.rs"
 description = "Binding for libsrtp2"
 documentation = "https://docs.rs/srtp2-sys/3.0.0/srtp2_sys"
 repository = "https://github.com/HyeonuPark/srtp2-sys"
-keywords = ["srtp"]
-categories = ["multimedia", "network-programming"]
+keywords = ["srtp", "rtp"]
+categories = ["multimedia", "network-programming", "external-ffi-bindings"]
 license = "BSD-3-Clause"
 
 [dependencies]
@@ -25,6 +25,14 @@ make-cmd = { version = "0.1.0", optional = true }
 vcpkg = "0.2"
 
 [features]
+skip-linking = []
 build = ["make-cmd"]
 enable-openssl = ["openssl-sys"]
 build-openssl = ["enable-openssl", "openssl-sys/vendored"]
+
+[package.metadata.docs.rs]
+features = ["skip-linking", "enable-openssl"]
+
+# not used by build.rs
+[package.metadata.pkg-config]
+libsrtp2 = "2.3.0"

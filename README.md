@@ -46,6 +46,11 @@ Activate the `enable-openssl` feature, and also build the openssl from the sourc
 
 In case if you don't want to rely on the system package manager.
 
+## `skip-linking`
+
+Only generates bindings and skip any linking process.
+Useful if all you want is to generate documentation.
+
 # License and Disclaimer
 
 libSRTP is distributed under the following license, which is included

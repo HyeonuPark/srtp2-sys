@@ -22,6 +22,10 @@ fn main() {
         .write_to_file(format!("{}/bindings.rs", out_dir))
         .expect("Failed to write libsrtp2 binding");
 
+    if cfg!(feature = "skip-linking") {
+        return;
+    }
+
     find_libsrtp2(out_dir);
 }
 
